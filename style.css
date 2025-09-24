@@ -1,62 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tausug Dictionary Online - Words Splitter</title>
-    <link rel="stylesheet" href="style.css">
-    <script type="module" src="app.js" defer></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Tausug Dictionary Online</h1>
-            <div class="municipality">Words Splitter Tool | Omar Municipality, Sulu, Philippines</div>
-            <div class="description">Separate sentences into words with parts of speech and translations</div>
-        </header>
-        
-        <div class="app-content">
-            <div class="input-section">
-                <textarea id="inputText" placeholder="Enter a sentence to analyze..."></textarea>
-                <div class="language-selector">
-                    <span>Translate to:</span>
-                    <select id="languageSelect">
-                        <option value="en">English</option>
-                        <option value="ts">Tausug</option>
-                        <option value="tl">Tagalog</option>
-                        <option value="ceb">Cebuano</option>
-                        <option value="ar">Arabic</option>
-                        <option value="ms">Malay</option>
-                        <option value="id">Indonesian</option>
-                        <option value="custom">Custom</option>
-                    </select>
-                </div>
-                <div class="buttons">
-                    <button id="processBtn"><i class="fas fa-cogs"></i> Split Words</button>
-                    <button id="resetBtn" class="clear-btn"><i class="fas fa-redo"></i> Reset</button>
-                    <button id="totalBtn" class="total-btn"><i class="fas fa-calculator"></i> Calculate</button>
-                </div>
-            </div>
+/* General body styling */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #cce0ff; /* Slightly blue background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-            <div class="output-section">
-                <h2 class="output-title">Word Analysis</h2>
-                <div id="wordsContainer" class="words-container"></div>
-            </div>
+/* Container styling */
+.container {
+  text-align: center;
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 400px;
+}
 
-            <div class="save-section">
-                <h3>Save Your Work</h3>
-                <div class="save-options">
-                    <button id="saveJsonBtn" class="save-btn"><i class="fas fa-file-export"></i> Save to Firestore</button>
-                </div>
-            </div>
-        </div>
+/* Inputs styling */
+input {
+  width: 80%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #aaa;
+}
 
-        <footer>
-            <p>Tausug Dictionary Online - Words Splitter Tool &copy; 2025</p>
-        </footer>
-    </div>
+/* Button styling */
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
 
-    <div class="notification" id="notification"></div>
-</body>
-</html>
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Status message */
+#status {
+  margin-top: 15px;
+  font-weight: bold;
+  color: green;
+}
+
+/* Responsive for mobile */
+@media (max-width: 500px) {
+  input {
+    width: 95%;
+  }
+}
