@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tausug Dictionary Online - Words Splitter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* -------------------- CSS -------------------- */
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg,#6a11cb 0%,#2575fc 100%); min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px; }
+        .container { background:white; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.2); width:100%; max-width:1000px; overflow:hidden; }
+        header { background: linear-gradient(to right,#6a11cb,#2575fc); color:white; padding:25px; text-align:center; }
+        h1 { font-size:2.2rem; margin-bottom:10px; }
+        .municipality { font-size:1.1rem; opacity:0.9; }
+        .description { font-size:1rem; opacity:0.8; margin-top:5px; }
+        .app-content { padding:25px; display:grid; grid-template-columns:1fr 1fr; gap:25px; }
+        @media(max-width:768px){ .app-content { grid-template-columns:1fr; } }
+        .input-section { grid-column:1 / -1; }
+        textarea { width:100%; height:150px; padding:15px; border:2px solid #ddd; border-radius:8px; resize:none; font-size:16px; transition:all 0.3s; }
+        textarea:focus { outline:none; border-color:#6a11cb; box-shadow:0 0 0 3px rgba(106,17,203,0.1); }
+        .buttons { display:flex; justify-content:center; gap:15px; margin-top:15px; flex-wrap:wrap; }
+        button { padding:12px 25px; color:white; border:none; border-radius:50px; cursor:pointer; font-size:16px; font-weight:600; display:flex; align-items:center; gap:8px; transition:all 0.3s ease; }
+        button:hover { transform:translateY(-2px); box-shadow:0 5px 15px rgba(0,0,0,0.2); }
+        button:active { transform:translateY(0); }
+        .save-btn { background:linear-gradient(to right,#2ecc71,#27ae60); }
+        .clear-btn { background:linear-gradient(to right,#e74c3c,#c0392b); }
+        .total-btn { background:linear-gradient(to right,#9b59b6,#8e44ad); }
+        .output-section { background:#f8f9fa; padding:20px; border-radius:10px; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); }
+        .output-title { font-size:1.3rem; color:#444; margin-bottom:15px; text-align:center; padding-bottom:10px; border-bottom:2px solid #6a11cb; }
+        .words-container { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:20px; max-height:400px; overflow-y:auto; padding:10px; }
+        .word-box { width:140px; padding:12px; border-radius:8px; background:white; box-shadow:0 3px 10px rgba(0,0,0,0.08); text-align:center; transition:all 0.3s; }
+        .word-box:hover { transform:translateY(-3px); box-shadow:0 5px 15px rgba(0,0,0,0.1); }
+        .word { font-weight:bold; color:#2575fc; margin-bottom:8px; font-size:16px; }
+        .pos { font-size:12px; color:#6c757d; margin-bottom:8px; text-transform:uppercase; font-weight:600; }
+        .translation-input { width:100%; padding:8px; border:1px dashed #adb5bd; border-radius:4px; font-size:14px; text-align:center; transition:all 0.3s; }
+        .translation-input:focus { outline:none; border-color:#6a11cb; border-style:solid; }
+        .notification { position:fixed; top:20px; right:20px; padding:15px 20px; background:#2ecc71; color:white; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.2); display:none; z-index:1000; animation:slideIn 0.3s ease; }
+        .notification.error { background:#e74c3c; }
+        .notification.show { display:block; }
+        @keyframes slideIn { from{transform:translateX(100px); opacity:0;} to{transform:translateX(0); opacity:1;} }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Tausug Dictionary Online</h1>
+        <div class="municipality">Words Splitter Tool | Omar Municipality, Sulu</div>
+        <div class="description">Separate sentences into words with parts of speech and translations</div>
+    </header>
+
+    <div class="app-content">
+        <div class="input-section">
+            <textarea id="inputText" placeholder="Enter a sentence to analyze...">The quick brown fox jumps over the lazy dog.</textarea>
+            <div class="buttons">
+                <button id="processBtn"><i class="fas fa-cogs"></i> Split Words</button>
+                <button id="resetBtn" class="clear-btn"><i class="fas fa-redo"></i> Reset</button>
+                <button id="totalBtn" class="total-btn"><i class="fas fa-calculator"></i> Calculate</button>
+                <button id="saveFirestoreBtn" class="save-btn"><i class="fas fa-save"></i> Save to Firebase</button>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <h2 class="output-title">Word Analysis</h2>
+            <div id="wordsContainer" class="words-container"></div>
+        </div>
+
+        <div id="notification" class="notification"></div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.1/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.6.1/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+    apiKey: "AIzaSyAJL6Ctsm6RpO53zCMJMEFWyL0Dxfzer3c",
+    authDomain: "tausug-dictionary.firebaseapp.com",
+    projectId: "tausug-dictionary",
+    storageBucket: "tausug-dictionary.appspot.com",
+    messagingSenderId: "709425271776",
+    appId: "1:709425271776:web:dd63ac94942dcad6b81185"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const processBtn = document.getElementById('processBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const totalBtn = document.getElementById('totalBtn');
+    const saveFirestoreBtn = document.getElementById('saveFirestoreBtn');
+    const inputText = document.getElementById('inputText');
+    const wordsContainer = document.getElementById('wordsContainer');
+    const notification = document.getElementById('notification');
+
+    let analyzedWords = [];
+
+    const partsOfSpeech = {
+        'the':'determiner','quick':'adjective','brown':'adjective','fox':'noun','jumps':'verb','over':'preposition',
+        'lazy':'adjective','dog':'noun'
+    };
+
+    processBtn.addEventListener('click', function() {
+        const sentence = inputText.value.trim();
+        if(!sentence){ showNotification('Please enter a sentence', true); return; }
+        wordsContainer.innerHTML=''; analyzedWords=[];
+        const words = sentence.split(/\s+/);
+        words.forEach(word => {
+            const cleanWord = word.replace(/[.,!?;:"]/g,'').toLowerCase();
+            const pos = partsOfSpeech[cleanWord] || 'unknown';
+            analyzedWords.push({ original: word, clean: cleanWord, pos: pos });
+            const box = document.createElement('div'); box.className='word-box';
+            box.innerHTML=`<div class="word">${word}</div><div class="pos">${pos}</div>`;
+            wordsContainer.appendChild(box);
+        });
+        showNotification(`Split ${words.length} words`);
+    });
+
+    resetBtn.addEventListener('click', function() {
+        inputText.value=''; wordsContainer.innerHTML=''; analyzedWords=[];
+        showNotification('Application reset');
+    });
+
+    totalBtn.addEventListener('click', function() {
+        showNotification(`Total Words: ${analyzedWords.length}`);
+    });
+
+    saveFirestoreBtn.addEventListener('click', async function() {
+        if(analyzedWords.length===0){ showNotification('No words to save', true); return; }
+        try {
+            const docRef = await addDoc(collection(db,'wordsAnalysis'),{
+                sentence: inputText.value,
+                analyzedWords: analyzedWords,
+                timestamp: new Date()
+            });
+            showNotification(`Saved to Firebase! (ID: ${docRef.id})`);
+        } catch(e){
+            console.error("Error adding document: ", e);
+            showNotification('Error saving to Firebase', true);
+        }
+    });
+
+    function showNotification(msg, isError=false){
+        notification.textContent=msg;
+        notification.className='notification show'+(isError?' error':'');
+        setTimeout(()=>{ notification.className='notification'; }, 3000);
+    }
+});
+</script>
+</body>
+</html>
